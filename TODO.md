@@ -1,0 +1,166 @@
+# TODO
+
+## 已完成
+
+- `GenericAgent` 控制面已切到真实 `ssh + archive` 部署：
+  - `deployment.provider = "ssh"`
+  - `deployment.targetServer = "multica-116"`
+  - `multica.sourceType = "archive"`
+  - `multica.archivePath = "/data/multica/templates/multica-template.tar.gz"`
+- `116` 上已落地 GenericAgent 独立 router 资源：
+  - dev：`19281` / `/data/multica/router/routes-dev`
+  - prod：`19280` / `/data/multica/router/routes-prod`
+  - router app：`/data/multica-router/app`
+  - systemd：`multica-instance-router-dev.service`、`multica-instance-router-prod.service`
+- GenericAgent 运行时模板包已放到 `116:/data/multica/templates/multica-template.tar.gz`
+- 实例 console 端口范围已独立：
+  - `MULTICA_CONSOLE_PORT_BASE=58000`
+  - `MULTICA_CONSOLE_PORT_RANGE=4000`
+- `116` 已安装 PostgreSQL，并只监听 `127.0.0.1:5432`
+- PostgreSQL 数据目录已放到新盘：
+  - `/mnt/disk-20260413-063944/postgresql/15/main`
+- 已创建 GenericAgent 独立数据库：
+  - `multica_dev` / `multica_dev_user`
+  - `multica_prod` / `multica_prod_user`
+- 生产环境配置已对齐到 `116` 当前实际 prod router：
+  - `MULTICA_ROUTER_BASE_URL=http://10.128.0.4:19280`
+  - `MULTICA_ROUTER_SHARED_TOKEN` 已与 `116:/data/multica-router/multica-instance-router-prod.env` 对齐
+- GenericAgent 真实 dev 工作区实例已跑通，验证成功实例：
+  - `multica-guest-gpt-5-4-telegram-7794d3`
+  - `console_url = http://127.0.0.1:19281/instances/multica-guest-gpt-5-4-telegram-7794d3/`
+- GenericAgent 运行数据目录已迁移到底层新盘，并通过 bind mount 挂回原路径：
+  - `/data/multica -> /mnt/disk-20260413-063944/data/multica`
+- GenericAgent 已补独立 dev 隧道脚本与 macOS `launchd` 模板：
+  - `scripts/dev-tunnel-up.sh`
+  - `scripts/dev-tunnel-down.sh`
+  - `scripts/dev-tunnel-status.sh`
+  - `deploy/macos/com.projects.multica-dev-tunnel.plist.example`
+  - `package.json` 已补：
+    - `npm run dev:tunnel:up`
+    - `npm run dev:tunnel:down`
+    - `npm run dev:tunnel:status`
+- 为给根盘腾空间，`OpenClaw` 的 `/data/openclaw` 已迁移到底层新盘，并通过 bind mount 挂回原路径；现有 OpenClaw 实例验证通过
+
+## 当前现状
+
+- GenericAgent 继续采用“同机同路由，但资源隔离”的方案，不复用 OpenClaw 当前 `19080/19081` router，也不复用 Hermes 规划中的 `19180/19181`
+- `116` 已新增并挂载数据盘：
+  - `/mnt/disk-20260413-063944`
+- 后续部署到 `116` 的大体量数据，默认优先落新盘；包括实例目录、模板包、PostgreSQL data dir、备份目录
+- 当前 `116` 上 GenericAgent router 实际端口为：
+  - prod：`19280`
+  - dev：`19281`
+- 当前 `116` 上 GenericAgent 运行数据目录仍在历史路径：
+  - `/data/multica`
+- 当前 `116` 上 GenericAgent 运行数据已通过 bind mount 从新盘提供：
+  - `/data/multica -> /mnt/disk-20260413-063944/data/multica`
+- 当前 `116` 上 `OpenClaw` 运行数据已通过 bind mount 从新盘提供：
+  - `/data/openclaw -> /mnt/disk-20260413-063944/data/openclaw`
+- 当前 prod 预检查已确认：
+  - `116` 上 `multica-instance-router-prod.service` 正常监听 `19280`
+  - `116:/data/multica/templates/multica-template.tar.gz` 存在
+  - `multica_prod` / `multica_prod_user` 可在 `116` 本机 PostgreSQL 正常登录
+  - `205 -> 10.128.0.4:19280` 私网访问正常
+- `205` 上已创建 GenericAgent Launch 专用 PostgreSQL：
+  - `multica_launch_prod` / `multica_launch_prod_user`
+  - 当前已验证可在 `205` 本机 `127.0.0.1:5432` 正常登录
+- 当前 prod 预检查也确认了两个明确缺口：
+  - `205` 上还没有独立的 GenericAgent Launch 站点目录或对应 systemd service
+  - `205` 当前公网入口仍由 OpenClaw Launch 占用：
+    - `openclaw-launch.service` 正在运行
+    - `nginx` 正在把一个历史公网域名反代到 `127.0.0.1:5175`
+    - 若直接按现有 GenericAgent prod 脚本落地，会和 OpenClaw Launch 冲突
+  - 生产环境配置已补上 prod 模型代理内网参数：
+  - `MULTICA_MODEL_PROXY_INTERNAL_BASE_URL=http://10.128.0.2:5175/api/internal/model-proxy`
+  - `MULTICA_MODEL_PROXY_ALLOWED_REMOTE_ADDRESSES=10.128.0.4`
+- 当前 dev 默认仍通过本地 `127.0.0.1:19281` 访问 `116` 上的 dev router：
+  - router 服务实际仍部署在 `116`
+  - `127.0.0.1:19281` 只是 SSH 本地转发入口
+  - 新增的独立 tunnel 脚本仍保留作底层能力与排障工具
+  - 当前默认开发路径已收敛为：
+    - 直接运行 `scripts/deploy-development.sh`
+    - 脚本启动时自动拉起 tunnel
+    - 脚本退出时自动执行 `scripts/dev-tunnel-down.sh`
+  - 当前这套独立 tunnel 方案已完成一轮真实本机验证：
+    - `ssh -o BatchMode=yes openclawlaunch_prod_116 'echo ok'` 已恢复正常
+    - `npm run dev:tunnel:up` 已能成功建立 `127.0.0.1:19281 -> 116:19281`
+    - `npm run dev:tunnel:status` 已确认 `managed=yes`、`router_health=ok`
+    - `npm run dev:tunnel:down` 已确认可正常停止隧道
+    - `scripts/deploy-development.sh` 已确认会在启动时自动拉起 tunnel，并在脚本退出时自动停止 tunnel
+  - 本次恢复前的主要阻塞更像是本机 ClashX Pro 节点/链路状态，而不是 tunnel 脚本结构本身
+
+## 短期方案
+
+- 先采用“数据库拆开、服务暂不拆开”的短期方案：
+  - `205` 上的 GenericAgent Launch 站点使用 `205` 本机 PostgreSQL
+  - `116` 上的 GenericAgent 工作区实例继续使用 `116` 本机 PostgreSQL
+  - `205` 不直接依赖 `116:5432`
+- 这不是当前兼容运行时代码的天然形态；当前实例仍然跑完整 `server.mjs`，只是先通过环境变量把 Launch 数据库和实例数据库分开
+- 短期方案下的数据库职责约定：
+  - Launch 真相源：
+    - 用户
+    - session
+    - 订单
+    - 支付
+    - deployment
+    - admin / analytics
+  - 实例本地库：
+    - 只承载实例启动与实例本地运行所需状态
+    - 即使保留了 `orders/deployments/agent_instances` 之类表，也不把它视为平台真相源
+- 短期方案下的配置约定：
+  - `MULTICA_POSTGRES_*`：
+    - 只表示“当前 Launch 服务自己要连接的数据库”
+  - `MULTICA_INSTANCE_POSTGRES_*`：
+    - 只表示“部署到实例时，应下发给实例使用的数据库配置”
+  - 实例运行时最终仍消费 `MULTICA_POSTGRES_*` / `DATABASE_URL`，但这些值由部署阶段优先从 `MULTICA_INSTANCE_POSTGRES_*` 生成
+- 当前状态：
+  - 代码兼容改造已完成，实例环境支持优先读取 `MULTICA_INSTANCE_POSTGRES_*`
+  - `205` Launch 数据库已建好，生产配置已切到短期双数据库配置
+
+## 剩余事项
+
+1. 完成 prod 上线前检查
+- [x] 验证 GenericAgent prod router：
+  - `19280 + routes-prod + prod token`
+- [ ] 验证 Launch 站点机到 `116` 的 prod 链路：
+  - 模型代理：
+    - `205 -> 116:19280` 已通
+    - `.env.production` 已补 `MULTICA_MODEL_PROXY_INTERNAL_BASE_URL` / `MULTICA_MODEL_PROXY_ALLOWED_REMOTE_ADDRESSES`
+  - PostgreSQL：
+    - 短期方案已切到双数据库：
+      - `205` 上 Launch 站点连接 `205` 本机 PostgreSQL
+      - `116` 上实例继续连接 `116` 本机 PostgreSQL
+    - 当前已完成：
+      - `205` Launch 专用数据库与用户已创建
+      - `.env.production` 已补齐 `MULTICA_INSTANCE_POSTGRES_*`
+  - console 访问：
+    - `205 -> 10.128.0.4:19280` 已通
+- [ ] 验证模板刷新流程：
+  - 能安全覆盖 `/data/multica/templates/multica-template.tar.gz`
+  - 不影响已运行实例
+- [ ] 至少再完成一轮接近 prod 的真实实例创建验证，确认 service、route、console URL 回写、console 打开全链路正常
+- [ ] 在 `205` 落地 GenericAgent Launch 站点目录、systemd service 与 Launch 专用 PostgreSQL
+- [ ] 先明确 `205` 上的公网入口策略，再继续落地 GenericAgent Launch：
+  - 方案 A：shadow 部署到不同端口和不同 service，仅做本机验证，不改现有 Nginx
+  - 方案 B：准备新的域名或子域名，给 GenericAgent 独立公网入口
+  - 方案 C：直接把当前被 OpenClaw 占用的历史公网域名切给 GenericAgent
+
+2. 清理与收尾
+- [ ] 观察确认 OpenClaw 迁盘稳定后，删除旧备份目录：
+  - `/data/openclaw.before-disk-migration-20260413-073738`
+- [ ] 观察确认 GenericAgent 迁盘稳定后，删除旧备份目录：
+  - `/data/multica.before-disk-migration-20260413-081128`
+- [ ] 清点并清理失败或无效的历史 `multica` dev 实例，避免继续占用 `116` 资源
+  - 已确认并禁用两条持续失败的历史 service：
+    - `multica-multica-guest-gpt-5--783602aa.service`
+    - `multica-multica-guest-gpt-5--d200a274.service`
+  - 后续仍需判断是否删除对应实例目录：
+    - `/data/multica/instances/multica-guest-gpt-5-4-telegram-f780c7`
+    - `/data/multica/instances/multica-guest-gpt-5-4-telegram-af98b2`
+- [ ] 补充一份简短运维说明：
+  - `116` 的新盘路径
+  - PostgreSQL data dir 位置
+  - GenericAgent router 端口与 routes 目录
+  - GenericAgent 数据目录是否已迁盘
+- [ ] 如未来确实需要“隧道长期常驻、与 dev 服务解耦”，再考虑安装 `launchd`：
+  - `com.projects.multica-dev-tunnel`

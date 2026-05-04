@@ -1,0 +1,43 @@
+name = "my-tradingagents"
+main = "worker/index.js"
+compatibility_date = "2026-05-04"
+pages_build_output_dir = "./dist"
+
+[build]
+command = "npm run build:worker"
+watch_dir = "src"
+
+[vars]
+APP_ORIGIN = "https://my-tradingagents.workers.dev"
+PAYMENT_PROVIDER = "creem"
+CREEM_ENV = "live"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tradingagents"
+database_id = "4732fb59-70ba-415c-94e6-ce0832e843e9"
+migrations_dir = "d1/migrations"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = [
+  "/",
+  "/compare/*",
+  "/solutions/*",
+  "/resources/*",
+  "/plans",
+  "/plans/*",
+  "/console",
+  "/console/*",
+  "/checkout",
+  "/checkout/*",
+  "/privacy",
+  "/privacy/*",
+  "/terms",
+  "/terms/*",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/api/*"
+]

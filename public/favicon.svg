@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="TradingAgents AI">
+  <defs>
+    <linearGradient id="ta-border" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7cff88" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#52d8ff" stop-opacity="0.72" />
+    </linearGradient>
+    <radialGradient id="ta-bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) rotate(90) scale(30)">
+      <stop offset="0" stop-color="#11201a" />
+      <stop offset="0.58" stop-color="#0a1614" />
+      <stop offset="1" stop-color="#07100e" />
+    </radialGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#ta-bg)" />
+  <rect x="4.75" y="4.75" width="54.5" height="54.5" rx="13.25" stroke="url(#ta-border)" stroke-width="1.5" />
+  <path d="M18 18v28" stroke="#7cff88" stroke-width="2.6" stroke-linecap="round" />
+  <rect x="14.5" y="22" width="7" height="12" rx="2.5" fill="#7cff88" />
+  <path d="M32 14v34" stroke="#eef8f4" stroke-width="2.6" stroke-linecap="round" />
+  <rect x="28.5" y="18" width="7" height="18" rx="2.5" fill="#eef8f4" />
+  <path d="M46 20v24" stroke="#52d8ff" stroke-width="2.6" stroke-linecap="round" />
+  <rect x="42.5" y="28" width="7" height="10" rx="2.5" fill="#52d8ff" />
+  <path d="M17 45c6-4 11-8 15-13 4-4 8-8 16-12" stroke="url(#ta-border)" stroke-width="2.4" stroke-linecap="round" />
+</svg>

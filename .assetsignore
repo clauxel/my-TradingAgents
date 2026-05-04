@@ -1,0 +1,3 @@
+# Exclude files that should not be served as static worker assets.
+server.mjs
+server-router.mjs

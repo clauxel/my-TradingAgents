@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+exports/
+推广/exports/
+multica.config.json
+genericagent.config.json
+openclaw-launch.config.json
+*.tsbuildinfo
+.DS_Store
+.env.*
+*.log
+.tmp-remote-*.mjs
+%TEMP%/
+temp.txt
+{console.error(e.message)
+运维待办.md

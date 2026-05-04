@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/robots\\.txt",
+      "dest": "/api/index.mjs?__genericagent_api_path=meta/robots.txt"
+    },
+    {
+      "src": "/sitemap\\.xml",
+      "dest": "/api/index.mjs?__genericagent_api_path=meta/sitemap.xml"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.mjs?__genericagent_api_path=$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
