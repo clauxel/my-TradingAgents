@@ -17,10 +17,6 @@ TradingAgents AI Launch is a hosted launch, checkout, provisioning, and console 
 - Hosted launch layer for teams that want the workflow without rebuilding the control plane first
 - Resource pages that help users evaluate the GitHub repo, Docker path, paper, arXiv record, and community discussion responsibly
 
-## Related Project
-
-- [OpenHuman Online](https://openhuman.online/?utm_source=github&utm_medium=readme&utm_campaign=openhuman_public_repos&utm_content=my_tradingagents) helps teams turn source material, notes, and meetings into an inspectable AI memory tree for human-reviewed workflows.
-
 ## Local Development
 
 1. Install dependencies with `npm install`.
